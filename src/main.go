@@ -2,25 +2,39 @@ package main
 
 import (
 	"fmt"
+	"math/rand/v2"
 	// "strconv"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+// Simple enum for movements structure
+const (
+	RIGHT = iota
+	LEFT
+	UP
+	BOTTOM
+)
+
+const MAX_X = 4
+const MAX_Y = 4
 const maxX = 129
 const maxY = 129
 
+var upAvail bool = false
 var rightAvail bool = false
+var leftAvail bool = false
+var bottomAvail bool = false
 
 const blockSize = 128
 
 // const blockPadding = 8
 
-var tileMap [4][4]int = [4][4]int{
-	{1, 1, 0, 2},
+var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
+	{0, 0, 0, 0},
+	{1, 1, 0, 0},
+	{1, 1, 0, 0},
 	{1, 1, 1, 1},
-	{1, 1, 0, 1},
-	{1, 0, 1, 1},
 }
 
 func createMap() {
@@ -33,51 +47,170 @@ func createMap() {
 func drawMap() {
 	for i, v := range tileMap {
 		for i3, value := range v {
-			// fmt.Println(i, fmt.Sprintf("%d, %d", i, int32(i)))
-			rl.DrawRectangle(int32(i3*maxX), int32(i*maxY), blockSize, blockSize, rl.Blue)
-			rl.DrawText(fmt.Sprintf("%d", value), int32(i3)*blockSize+(blockSize/2)-5, int32(i)*blockSize+(blockSize/2)-15, 30, rl.Black)
-			// rl.DrawText(fmt.Sprintf("%d", value), int32(i3)*blockSize, int32(i)*blockSize, 30, rl.Black)
+			if value == 0 {
+				rl.DrawRectangle(int32(i3*maxX), int32(i*maxY), blockSize, blockSize, rl.Gray)
+			} else {
+				rl.DrawRectangle(int32(i3*maxX), int32(i*maxY), blockSize, blockSize, rl.Beige)
+				rl.DrawText(fmt.Sprintf("%d", value), int32(i3)*blockSize+(blockSize/2)-5, int32(i)*blockSize+(blockSize/2)-15, 30, rl.Black)
+			}
 		}
 	}
 }
 
 func moveItems() {
 	if rightAvail {
-		_move_right()
+		move(RIGHT)
+	}
+	if leftAvail {
+		move(LEFT)
+	}
+	if upAvail {
+		move(UP)
+	}
+	if bottomAvail {
+		move(BOTTOM)
+	}
+}
+
+func item_length() (count int) {
+	for i, items := range tileMap {
+		for i3, _ := range items {
+			if tileMap[i][i3] != 0 {
+				count += 1
+			}
+		}
+	}
+	return count
+}
+
+func add_item() {
+	// make a new item
+	// find a place for the item
+	var random_horizantal = rand.IntN(MAX_Y - 1)
+	fmt.Println("That's the random colmn:", random_horizantal)
+	for i := range MAX_Y {
+		item := tileMap[i][random_horizantal]
+		if item != 0 {
+			fmt.Println("Added a new item")
+			tileMap[i-1][random_horizantal] = 1
+			break
+		}
+		if i == MAX_Y-1 {
+			tileMap[i][random_horizantal] = 1
+			break
+		}
+	}
+}
+
+// TODO: Maybe we can merge v,h functions together :d
+func move(direction int) {
+	// default values for all directions
+	var default_mov_pointer_x = 0
+	var default_mov_pointer_y = 0
+	var default_x = 0
+	var default_y = 0
+
+	switch direction {
+	case RIGHT:
+		default_mov_pointer_x = +1
+		default_x = 0
+		isClean := _move_v(default_x, default_mov_pointer_x, MAX_X-1)
+		rightAvail = !isClean
+	case LEFT:
+		default_mov_pointer_x = -1
+		default_x = MAX_X - 1
+		leftAvail = !_move_v(default_x, default_mov_pointer_x, 0)
+	case UP:
+		default_mov_pointer_y = +1
+		default_y = 0
+		upAvail = !_move_h(default_y, default_mov_pointer_y, MAX_Y-1)
+	case BOTTOM:
+		default_mov_pointer_y = -1
+		default_y = MAX_Y - 1
+		bottomAvail = !_move_h(default_y, default_mov_pointer_y, 0)
 	}
 }
 
 // Original move right function
-func _move_right() {
+func _move_v(default_x int, dmp int, max_x int) bool {
 	var x = 0
 	var y = 0
+	var isClean bool = true
 	for {
 		if y == 4 {
-			return
+			// if isClean {
+			// 	// TODO: Maybe this written better ;d: got it :D
+			// 	// rightAvail = false
+			// }
+			return isClean
 		}
+		x = default_x
 		for {
-			if x == 3 {
-				x = 0
+			if x == max_x {
+				x = default_x
 				y += 1
 				break
 			}
-			if (tileMap[y][x] == tileMap[y][x+1]) && (tileMap[y][x] != 0) {
+			if (tileMap[y][x] == tileMap[y][x+dmp]) && (tileMap[y][x] != 0) {
 				// if tileMap[y][x+1] == 0 && tileMap[y][x] != 0 {
-				tileMap[y][x+1] = tileMap[y][x] * 2
+				tileMap[y][x+dmp] = tileMap[y][x] * 2
 				tileMap[y][x] = 0
-				x = 0
+				// x = 0
 				fmt.Println(tileMap[y])
 				y += 1
+				isClean = false
 				break
-			} else if (tileMap[y][x+1] == 0) && tileMap[y][x] != 0 {
-				tileMap[y][x+1] = tileMap[y][x]
+			} else if (tileMap[y][x+dmp] == 0) && tileMap[y][x] != 0 {
+				tileMap[y][x+dmp] = tileMap[y][x]
 				tileMap[y][x] = 0
-				x = 0
 				fmt.Println(tileMap[y])
 				y += 1
+				isClean = false
 				break
 			} else {
+				x += dmp
+			}
+		}
+	}
+}
+
+func _move_h(default_y int, dmp int, max_y int) bool {
+	var x = 0
+	var y = 0
+	var isClean bool = true
+	for {
+		if x == 4 {
+			// if isClean {
+			// 	// TODO: Maybe this written better ;d: got it :D
+			// 	// rightAvail = false
+			// }
+			return isClean
+		}
+		y = default_y
+		for {
+			if y == max_y {
+				y = default_y
 				x += 1
+				break
+			}
+			if (tileMap[y][x] == tileMap[y+dmp][x]) && (tileMap[y][x] != 0) {
+				// if tileMap[y][x+1] == 0 && tileMap[y][x] != 0 {
+				tileMap[y+dmp][x] = tileMap[y][x] * 2
+				tileMap[y][x] = 0
+				// x = 0
+				fmt.Println(tileMap[y])
+				x += 1
+				isClean = false
+				break
+			} else if (tileMap[y+dmp][x] == 0) && tileMap[y][x] != 0 {
+				tileMap[y+dmp][x] = tileMap[y][x]
+				tileMap[y][x] = 0
+				fmt.Println(tileMap[y])
+				x += 1
+				isClean = false
+				break
+			} else {
+				y += dmp
 			}
 		}
 	}
@@ -92,13 +225,27 @@ func main() {
 	for !rl.WindowShouldClose() {
 
 		rl.BeginDrawing()
-		rl.ClearBackground(rl.RayWhite)
+		rl.ClearBackground(rl.Black)
 
 		drawMap()
 
 		if rl.IsKeyPressed(rl.KeyRight) {
 			rightAvail = true
+		} else if rl.IsKeyPressed(rl.KeyLeft) {
+			leftAvail = true
+		} else if rl.IsKeyPressed(rl.KeyDown) {
+			upAvail = true
+		} else if rl.IsKeyPressed(rl.KeyUp) {
+			bottomAvail = true
 		}
+
+		if rl.IsKeyPressed(rl.KeyB) {
+			add_item()
+		}
+
+		// if item_length() < 4 {
+		// 	add_item()
+		// }
 
 		moveItems()
 
