@@ -16,6 +16,15 @@ const (
 	BOTTOM
 )
 
+const (
+	IDLE = iota
+	START
+	MOVING
+	JUST_FINISH
+	WIN
+	LOSE
+)
+
 const MAX_X = 4
 const MAX_Y = 4
 const maxX = 129
@@ -58,18 +67,29 @@ func drawMap() {
 }
 
 func moveItems() {
-	if rightAvail {
-		move(RIGHT)
+	for k, v := range State.getDataFrame() {
+		if v == 1 {
+			move(k)
+		}
 	}
-	if leftAvail {
-		move(LEFT)
-	}
-	if upAvail {
-		move(UP)
-	}
-	if bottomAvail {
-		move(BOTTOM)
-	}
+	// switch State.getData(
+	// if rightAvail {
+	// 	move(RIGHT)
+	// 	return
+	// }
+	// if leftAvail {
+	// 	move(LEFT)
+	// 	return
+	// }
+	// if upAvail {
+	// 	move(UP)
+	// 	return
+	// }
+	// if bottomAvail {
+	// 	move(BOTTOM)
+	// 	return
+	// }
+	State.setState(IDLE)
 }
 
 func item_length() (count int) {
@@ -83,6 +103,7 @@ func item_length() (count int) {
 	return count
 }
 
+// TODO: it needs more work
 func add_item() {
 	// make a new item
 	// find a place for the item
@@ -109,25 +130,28 @@ func move(direction int) {
 	var default_mov_pointer_y = 0
 	var default_x = 0
 	var default_y = 0
+	var isClean bool = false
 
 	switch direction {
 	case RIGHT:
 		default_mov_pointer_x = +1
 		default_x = 0
-		isClean := _move_v(default_x, default_mov_pointer_x, MAX_X-1)
-		rightAvail = !isClean
+		isClean = _move_v(default_x, default_mov_pointer_x, MAX_X-1)
+		State.setData(RIGHT, Bool2int(!isClean))
 	case LEFT:
 		default_mov_pointer_x = -1
 		default_x = MAX_X - 1
-		leftAvail = !_move_v(default_x, default_mov_pointer_x, 0)
+		isClean = _move_v(default_x, default_mov_pointer_x, 0)
+		State.setData(LEFT, Bool2int(!isClean))
 	case UP:
 		default_mov_pointer_y = +1
 		default_y = 0
-		upAvail = !_move_h(default_y, default_mov_pointer_y, MAX_Y-1)
+		isClean = _move_h(default_y, default_mov_pointer_y, MAX_Y-1)
+		State.setData(UP, Bool2int(!isClean))
 	case BOTTOM:
 		default_mov_pointer_y = -1
 		default_y = MAX_Y - 1
-		bottomAvail = !_move_h(default_y, default_mov_pointer_y, 0)
+		State.setData(BOTTOM, Bool2int(!_move_h(default_y, default_mov_pointer_y, 0)))
 	}
 }
 
@@ -174,6 +198,21 @@ func _move_v(default_x int, dmp int, max_x int) bool {
 	}
 }
 
+func process_State() int {
+
+	switch State.getState() {
+	// case START:
+	// case IDLE:
+	// case MOVING:
+	case JUST_FINISH:
+		add_item()
+		State.setState(IDLE)
+
+	}
+	// Do things based on the current State
+	return 0
+}
+
 func _move_h(default_y int, dmp int, max_y int) bool {
 	var x = 0
 	var y = 0
@@ -216,12 +255,23 @@ func _move_h(default_y int, dmp int, max_y int) bool {
 	}
 }
 
+func setupGame() {
+	var mov_map_data map[int]int = map[int]int{
+		RIGHT:  0,
+		LEFT:   0,
+		UP:     0,
+		BOTTOM: 0,
+	}
+	State.setDataFrame(mov_map_data)
+}
+
 func main() {
 	rl.InitWindow(515, 480+30, "raylib [core] example - basic window")
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(60)
 	// createMap()
 	// moveRight()
+	setupGame()
 	for !rl.WindowShouldClose() {
 
 		rl.BeginDrawing()
@@ -229,14 +279,26 @@ func main() {
 
 		drawMap()
 
+		ret_process := process_State()
+		if ret_process == 1 {
+			continue
+		}
+
 		if rl.IsKeyPressed(rl.KeyRight) {
-			rightAvail = true
+			State.setData(RIGHT, 1)
+			State.setState(MOVING)
 		} else if rl.IsKeyPressed(rl.KeyLeft) {
-			leftAvail = true
+			// leftAvail = true
+			State.setData(LEFT, 1)
+			State.setState(MOVING)
 		} else if rl.IsKeyPressed(rl.KeyDown) {
-			upAvail = true
+			// upAvail = true
+			State.setData(UP, 1)
+			State.setState(MOVING)
 		} else if rl.IsKeyPressed(rl.KeyUp) {
-			bottomAvail = true
+			// bottomAvail = true
+			State.setData(BOTTOM, 1)
+			State.setState(MOVING)
 		}
 
 		if rl.IsKeyPressed(rl.KeyB) {
