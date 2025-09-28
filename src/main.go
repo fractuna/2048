@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand/v2"
+
 	// "strconv"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -27,13 +28,6 @@ const (
 
 const MAX_X = 4
 const MAX_Y = 4
-const maxX = 129
-const maxY = 129
-
-var upAvail bool = false
-var rightAvail bool = false
-var leftAvail bool = false
-var bottomAvail bool = false
 
 const blockSize = 128
 
@@ -57,9 +51,9 @@ func drawMap() {
 	for i, v := range tileMap {
 		for i3, value := range v {
 			if value == 0 {
-				rl.DrawRectangle(int32(i3*maxX), int32(i*maxY), blockSize, blockSize, rl.Gray)
+				rl.DrawRectangle(int32(i3*(blockSize+1)), int32(i*(blockSize+1)), blockSize, blockSize, rl.Gray)
 			} else {
-				rl.DrawRectangle(int32(i3*maxX), int32(i*maxY), blockSize, blockSize, rl.Beige)
+				rl.DrawRectangle(int32(i3*(blockSize+1)), int32(i*(blockSize+1)), blockSize, blockSize, rl.ColorFromNormalized(rl.Vector4{float32(value) * 5, float32(value) * 15, float32(value) * 3, float32(value)}))
 				rl.DrawText(fmt.Sprintf("%d", value), int32(i3)*blockSize+(blockSize/2)-5, int32(i)*blockSize+(blockSize/2)-15, 30, rl.Black)
 			}
 		}
@@ -67,29 +61,19 @@ func drawMap() {
 }
 
 func moveItems() {
-	for k, v := range State.getDataFrame() {
+	var all_clean bool = true
+	for k, v := range State.GetDataFrame() {
 		if v == 1 {
 			move(k)
+			all_clean = false
 		}
 	}
-	// switch State.getData(
-	// if rightAvail {
-	// 	move(RIGHT)
-	// 	return
-	// }
-	// if leftAvail {
-	// 	move(LEFT)
-	// 	return
-	// }
-	// if upAvail {
-	// 	move(UP)
-	// 	return
-	// }
-	// if bottomAvail {
-	// 	move(BOTTOM)
-	// 	return
-	// }
-	State.setState(IDLE)
+
+	if all_clean == true && State.GetState() == MOVING {
+		add_item()
+		State.SetState(IDLE)
+	}
+	// State.SetState(IDLE)
 }
 
 func item_length() (count int) {
@@ -107,19 +91,28 @@ func item_length() (count int) {
 func add_item() {
 	// make a new item
 	// find a place for the item
-	var random_horizantal = rand.IntN(MAX_Y - 1)
+	var random_horizantal = rand.IntN((MAX_Y-1)-0) + 0
+	// var random_horizantal = 1
 	fmt.Println("That's the random colmn:", random_horizantal)
-	for i := range MAX_Y {
+
+	// First check if the colmn has empty rooms
+
+	// var dmp int = 0
+	for i := MAX_Y - 1; i >= 0; i-- {
 		item := tileMap[i][random_horizantal]
-		if item != 0 {
-			fmt.Println("Added a new item")
-			tileMap[i-1][random_horizantal] = 1
-			break
-		}
-		if i == MAX_Y-1 {
+		// fmt.Println(tileMap[i][random_horizantal])
+		if item == 0 {
+			// TODO: Add add_item logic here...
+			// backward until find an item
 			tileMap[i][random_horizantal] = 1
+			// tileMap[i+dmp][random_horizantal] = 1
 			break
 		}
+		// // maybe it doesn't have any item
+		// if i == 0 {
+		// 	tileMap[MAX_Y-1][random_horizantal] = 1
+		// 	break
+		// }
 	}
 }
 
@@ -137,21 +130,21 @@ func move(direction int) {
 		default_mov_pointer_x = +1
 		default_x = 0
 		isClean = _move_v(default_x, default_mov_pointer_x, MAX_X-1)
-		State.setData(RIGHT, Bool2int(!isClean))
+		State.SetData(RIGHT, Bool2int(!isClean))
 	case LEFT:
 		default_mov_pointer_x = -1
 		default_x = MAX_X - 1
 		isClean = _move_v(default_x, default_mov_pointer_x, 0)
-		State.setData(LEFT, Bool2int(!isClean))
+		State.SetData(LEFT, Bool2int(!isClean))
 	case UP:
 		default_mov_pointer_y = +1
 		default_y = 0
 		isClean = _move_h(default_y, default_mov_pointer_y, MAX_Y-1)
-		State.setData(UP, Bool2int(!isClean))
+		State.SetData(UP, Bool2int(!isClean))
 	case BOTTOM:
 		default_mov_pointer_y = -1
 		default_y = MAX_Y - 1
-		State.setData(BOTTOM, Bool2int(!_move_h(default_y, default_mov_pointer_y, 0)))
+		State.SetData(BOTTOM, Bool2int(!_move_h(default_y, default_mov_pointer_y, 0)))
 	}
 }
 
@@ -180,14 +173,14 @@ func _move_v(default_x int, dmp int, max_x int) bool {
 				tileMap[y][x+dmp] = tileMap[y][x] * 2
 				tileMap[y][x] = 0
 				// x = 0
-				fmt.Println(tileMap[y])
+				// fmt.Println(tileMap[y])
 				y += 1
 				isClean = false
 				break
 			} else if (tileMap[y][x+dmp] == 0) && tileMap[y][x] != 0 {
 				tileMap[y][x+dmp] = tileMap[y][x]
 				tileMap[y][x] = 0
-				fmt.Println(tileMap[y])
+				// fmt.Println(tileMap[y])
 				y += 1
 				isClean = false
 				break
@@ -200,13 +193,13 @@ func _move_v(default_x int, dmp int, max_x int) bool {
 
 func process_State() int {
 
-	switch State.getState() {
+	switch State.GetState() {
 	// case START:
 	// case IDLE:
 	// case MOVING:
 	case JUST_FINISH:
-		add_item()
-		State.setState(IDLE)
+		// add_item()
+		// State.SetState(IDLE)
 
 	}
 	// Do things based on the current State
@@ -237,14 +230,14 @@ func _move_h(default_y int, dmp int, max_y int) bool {
 				tileMap[y+dmp][x] = tileMap[y][x] * 2
 				tileMap[y][x] = 0
 				// x = 0
-				fmt.Println(tileMap[y])
+				// fmt.Println(tileMap[y])
 				x += 1
 				isClean = false
 				break
 			} else if (tileMap[y+dmp][x] == 0) && tileMap[y][x] != 0 {
 				tileMap[y+dmp][x] = tileMap[y][x]
 				tileMap[y][x] = 0
-				fmt.Println(tileMap[y])
+				// fmt.Println(tileMap[y])
 				x += 1
 				isClean = false
 				break
@@ -256,13 +249,15 @@ func _move_h(default_y int, dmp int, max_y int) bool {
 }
 
 func setupGame() {
+	// WARNING: Notice this is the game's logic movement direction, not the user key bindings
+	// For that you need to read 'keys.go' file
 	var mov_map_data map[int]int = map[int]int{
 		RIGHT:  0,
 		LEFT:   0,
 		UP:     0,
 		BOTTOM: 0,
 	}
-	State.setDataFrame(mov_map_data)
+	State.SetDataFrame(mov_map_data)
 }
 
 func main() {
@@ -284,21 +279,21 @@ func main() {
 			continue
 		}
 
-		if rl.IsKeyPressed(rl.KeyRight) {
-			State.setData(RIGHT, 1)
-			State.setState(MOVING)
-		} else if rl.IsKeyPressed(rl.KeyLeft) {
+		if rl.IsKeyPressed(int32(Get_key(RIGHT))) {
+			State.SetData(RIGHT, 1)
+			State.SetState(MOVING)
+		} else if rl.IsKeyPressed(int32(Get_key(LEFT))) {
 			// leftAvail = true
-			State.setData(LEFT, 1)
-			State.setState(MOVING)
-		} else if rl.IsKeyPressed(rl.KeyDown) {
+			State.SetData(LEFT, 1)
+			State.SetState(MOVING)
+		} else if rl.IsKeyPressed(int32(Get_key(UP))) {
 			// upAvail = true
-			State.setData(UP, 1)
-			State.setState(MOVING)
-		} else if rl.IsKeyPressed(rl.KeyUp) {
+			State.SetData(UP, 1)
+			State.SetState(MOVING)
+		} else if rl.IsKeyPressed(int32(Get_key(BOTTOM))) {
 			// bottomAvail = true
-			State.setData(BOTTOM, 1)
-			State.setState(MOVING)
+			State.SetData(BOTTOM, 1)
+			State.SetState(MOVING)
 		}
 
 		if rl.IsKeyPressed(rl.KeyB) {

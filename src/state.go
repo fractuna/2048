@@ -17,19 +17,19 @@ func Init(_current_state int) state {
 	}
 }
 
-func (p *state) setState(_State int) {
+func (p *state) SetState(_State int) {
 	p.current_state = _State
 }
 
-func (p *state) getState() int {
+func (p *state) GetState() int {
 	return p.current_state
 }
 
-func (p *state) setDataFrame(_data_frame map[int]int) {
+func (p *state) SetDataFrame(_data_frame map[int]int) {
 	p.state_data = _data_frame
 }
 
-func (p *state) setData(_user_keys int, _user_data int) error {
+func (p *state) SetData(_user_keys int, _user_data int) error {
 	if _, ok := p.state_data[_user_keys]; ok {
 		p.state_data[_user_keys] = _user_data
 		return nil
@@ -37,14 +37,14 @@ func (p *state) setData(_user_keys int, _user_data int) error {
 	return errors.New("can't find data")
 }
 
-func (p *state) getData(key int) int {
+func (p *state) GetData(key int) int {
 	if value, ok := p.state_data[key]; ok {
 		return value
 	}
 	return -1 // TODO: We can use error.new here
 }
 
-func (p *state) getDataFrame() map[int]int {
+func (p *state) GetDataFrame() map[int]int {
 	return p.state_data
 }
 
