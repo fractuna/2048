@@ -6,6 +6,14 @@ import (
 
 // Manage key bindings
 
+// Basic movements enums
+const (
+	RIGHT = iota
+	LEFT
+	UP
+	BOTTOM
+)
+
 // Default key bindings
 var keys map[int]int = map[int]int{
 	RIGHT:  rl.KeyRight,
