@@ -7,7 +7,7 @@ run:
 	go run ${MAIN}
 
 build:
-	go build -o '2048' ${MAIN}
+	go build -o ${BIN} ${MAIN}
 
 clean:
 	rm -rf ${BIN}
