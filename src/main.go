@@ -42,9 +42,9 @@ const blockSize = 128
 // const blockPadding = 8
 
 var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
+	{0, 0, 0, 0},
 	{0, 0, 0, 1},
-	{1, 1, 1, 1},
-	{1, 0, 0, 0},
+	{0, 0, 0, 1},
 	{1, 1, 1, 1},
 }
 
@@ -154,7 +154,7 @@ func move(direction int) {
 
 /* This function works by shifting items to fill the zero values*/
 func move_zero_v(default_x int, dmp int, max_x int) bool {
-	var x = 0
+	var x = default_x
 	var y = 0
 	zeroClean := true
 	for {
@@ -183,7 +183,7 @@ func move_zero_v(default_x int, dmp int, max_x int) bool {
 /* This function works by shifting items to fill the zero values*/
 func move_zero_h(default_y int, dmp int, max_y int) bool {
 	var x = 0
-	var y = 0
+	var y = default_y
 	zeroClean := true
 	for {
 		if x == 4 {
@@ -203,7 +203,7 @@ func move_zero_h(default_y int, dmp int, max_y int) bool {
 				x += 1
 				break
 			}
-			y -= dmp
+			y += dmp
 		}
 	}
 }
@@ -273,25 +273,25 @@ func process_State() int {
 	case MOVE_ZERO_RIGHT:
 		isClean := move_zero_v(0, +1, MAX_X-1)
 		if isClean {
-			State.SetState(IDLE)
+			State.SetState(JUST_FINISH)
 		}
 
 	case MOVE_ZERO_LEFT:
 		isClean := move_zero_v(3, -1, 0)
 		if isClean {
-			State.SetState(IDLE)
+			State.SetState(JUST_FINISH)
 		}
 
 	case MOVE_ZERO_DOWN:
 		isClean := move_zero_h(3, -1, 0)
 		if isClean {
-			State.SetState(IDLE)
+			State.SetState(JUST_FINISH)
 		}
 
 	case MOVE_ZERO_UP:
 		isClean := move_zero_h(0, +1, MAX_Y-1)
 		if isClean {
-			State.SetState(IDLE)
+			State.SetState(JUST_FINISH)
 		}
 
 	case JUST_FINISH:
