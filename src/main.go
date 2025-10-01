@@ -2,11 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math/rand/v2"
-
-	// "strconv"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"math/rand/v2"
 )
 
 // Simple enum for movements structure
@@ -20,7 +17,18 @@ const (
 const (
 	IDLE = iota
 	START
-	MOVING
+
+	// MOVEMENTS STATES
+	MOVE_RIGHT
+	MOVE_UP
+	MOVE_DOWN
+	MOVE_LEFT
+
+	MOVE_ZERO_RIGHT
+	MOVE_ZERO_LEFT
+	MOVE_ZERO_DOWN
+	MOVE_ZERO_UP
+
 	JUST_FINISH
 	WIN
 	LOSE
@@ -34,9 +42,9 @@ const blockSize = 128
 // const blockPadding = 8
 
 var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
-	{0, 0, 0, 0},
-	{1, 1, 0, 0},
-	{1, 1, 0, 0},
+	{0, 0, 0, 1},
+	{1, 1, 1, 1},
+	{1, 0, 0, 0},
 	{1, 1, 1, 1},
 }
 
@@ -60,21 +68,17 @@ func drawMap() {
 	}
 }
 
-func moveItems() {
-	var all_clean bool = true
-	for k, v := range State.GetDataFrame() {
-		if v == 1 {
-			move(k)
-			all_clean = false
-		}
-	}
-
-	if all_clean == true && State.GetState() == MOVING {
-		add_item()
-		State.SetState(IDLE)
-	}
-	// State.SetState(IDLE)
-}
+// func moveItems() {
+// 	var all_clean bool = true
+// 	for k, v := range State.GetDataFrame() {
+// 		if v == 1 {
+// 			move(k)
+// 			all_clean = false
+// 		}
+// 	}
+//
+// 	// State.SetState(IDLE)
+// }
 
 func item_length() (count int) {
 	for i, items := range tileMap {
@@ -148,6 +152,62 @@ func move(direction int) {
 	}
 }
 
+/* This function works by shifting items to fill the zero values*/
+func move_zero_v(default_x int, dmp int, max_x int) bool {
+	var x = 0
+	var y = 0
+	zeroClean := true
+	for {
+		if y == 4 {
+			return zeroClean
+		}
+		for {
+			if x == max_x {
+				x = default_x
+				y += 1
+				break
+			}
+			if (tileMap[y][x+dmp] == 0) && tileMap[y][x] != 0 {
+				tileMap[y][x+dmp] = tileMap[y][x]
+				tileMap[y][x] = 0
+				// fmt.Println(tileMap[y])
+				zeroClean = false
+				y += 1
+				break
+			}
+			x += dmp
+		}
+	}
+}
+
+/* This function works by shifting items to fill the zero values*/
+func move_zero_h(default_y int, dmp int, max_y int) bool {
+	var x = 0
+	var y = 0
+	zeroClean := true
+	for {
+		if x == 4 {
+			return zeroClean
+		}
+		for {
+			if y == max_y {
+				y = default_y
+				x += 1
+				break
+			}
+			if (tileMap[y+dmp][x] == 0) && tileMap[y][x] != 0 {
+				tileMap[y+dmp][x] = tileMap[y][x]
+				tileMap[y][x] = 0
+				// fmt.Println(tileMap[y])
+				zeroClean = false
+				x += 1
+				break
+			}
+			y -= dmp
+		}
+	}
+}
+
 // Original move right function
 func _move_v(default_x int, dmp int, max_x int) bool {
 	var x = 0
@@ -164,7 +224,7 @@ func _move_v(default_x int, dmp int, max_x int) bool {
 		x = default_x
 		for {
 			if x == max_x {
-				x = default_x
+				// x = default_x
 				y += 1
 				break
 			}
@@ -175,18 +235,18 @@ func _move_v(default_x int, dmp int, max_x int) bool {
 				// x = 0
 				// fmt.Println(tileMap[y])
 				y += 1
-				isClean = false
 				break
-			} else if (tileMap[y][x+dmp] == 0) && tileMap[y][x] != 0 {
-				tileMap[y][x+dmp] = tileMap[y][x]
-				tileMap[y][x] = 0
-				// fmt.Println(tileMap[y])
-				y += 1
-				isClean = false
-				break
-			} else {
-				x += dmp
 			}
+			// } else if (tileMap[y][x+dmp] == 0) && tileMap[y][x] != 0 {
+			// 	tileMap[y][x+dmp] = tileMap[y][x]
+			// 	tileMap[y][x] = 0
+			// 	// fmt.Println(tileMap[y])
+			// 	y += 1
+			// 	isClean = false
+			// 	break
+			// } else {
+			x += dmp
+			// }
 		}
 	}
 }
@@ -196,11 +256,67 @@ func process_State() int {
 	switch State.GetState() {
 	// case START:
 	// case IDLE:
-	// case MOVING:
+	case MOVE_RIGHT:
+		_move_v(0, +1, MAX_X-1)
+		State.SetState(MOVE_ZERO_RIGHT)
+	case MOVE_LEFT:
+		_move_v(3, -1, 0)
+		State.SetState(MOVE_ZERO_LEFT)
+	case MOVE_UP:
+		_move_h(0, +1, MAX_Y-1)
+		State.SetState(MOVE_ZERO_UP)
+	case MOVE_DOWN:
+		_move_h(3, -1, 0)
+		State.SetState(MOVE_ZERO_DOWN)
+		// move_zero_v(0, +1, MAX_X-1)
+
+	case MOVE_ZERO_RIGHT:
+		isClean := move_zero_v(0, +1, MAX_X-1)
+		if isClean {
+			State.SetState(IDLE)
+		}
+
+	case MOVE_ZERO_LEFT:
+		isClean := move_zero_v(3, -1, 0)
+		if isClean {
+			State.SetState(IDLE)
+		}
+
+	case MOVE_ZERO_DOWN:
+		isClean := move_zero_h(3, -1, 0)
+		if isClean {
+			State.SetState(IDLE)
+		}
+
+	case MOVE_ZERO_UP:
+		isClean := move_zero_h(0, +1, MAX_Y-1)
+		if isClean {
+			State.SetState(IDLE)
+		}
+
 	case JUST_FINISH:
+		add_item()
+		State.SetState(IDLE)
 		// add_item()
 		// State.SetState(IDLE)
+	case IDLE:
+		if rl.IsKeyPressed(int32(Get_key(RIGHT))) {
+			State.SetState(MOVE_RIGHT)
+		} else if rl.IsKeyPressed(int32(Get_key(LEFT))) {
+			// leftAvail = true
+			State.SetState(MOVE_LEFT)
+		} else if rl.IsKeyPressed(int32(Get_key(UP))) {
+			// upAvail = true
+			State.SetState(MOVE_UP)
+		} else if rl.IsKeyPressed(int32(Get_key(BOTTOM))) {
+			// bottomAvail = true
+			State.SetState(MOVE_DOWN)
+		}
 
+		if rl.IsKeyPressed(rl.KeyB) {
+			add_item()
+		}
+		fmt.Println("IDLE")
 	}
 	// Do things based on the current State
 	return 0
@@ -221,7 +337,7 @@ func _move_h(default_y int, dmp int, max_y int) bool {
 		y = default_y
 		for {
 			if y == max_y {
-				y = default_y
+				// y = default_y
 				x += 1
 				break
 			}
@@ -232,32 +348,24 @@ func _move_h(default_y int, dmp int, max_y int) bool {
 				// x = 0
 				// fmt.Println(tileMap[y])
 				x += 1
-				isClean = false
 				break
-			} else if (tileMap[y+dmp][x] == 0) && tileMap[y][x] != 0 {
-				tileMap[y+dmp][x] = tileMap[y][x]
-				tileMap[y][x] = 0
-				// fmt.Println(tileMap[y])
-				x += 1
-				isClean = false
-				break
-			} else {
-				y += dmp
 			}
+			y += dmp
 		}
 	}
 }
 
 func setupGame() {
-	// WARNING: Notice this is the game's logic movement direction, not the user key bindings
-	// For that you need to read 'keys.go' file
-	var mov_map_data map[int]int = map[int]int{
-		RIGHT:  0,
-		LEFT:   0,
-		UP:     0,
-		BOTTOM: 0,
-	}
-	State.SetDataFrame(mov_map_data)
+	State.SetState(IDLE)
+	// // WARNING: Notice this is the game's logic movement direction, not the user key bindings
+	// // For that you need to read 'keys.go' file
+	// var mov_map_data map[int]int = map[int]int{
+	// 	RIGHT:  0,
+	// 	LEFT:   0,
+	// 	UP:     0,
+	// 	BOTTOM: 0,
+	// }
+	// State.SetDataFrame(mov_map_data)
 }
 
 func main() {
@@ -279,32 +387,11 @@ func main() {
 			continue
 		}
 
-		if rl.IsKeyPressed(int32(Get_key(RIGHT))) {
-			State.SetData(RIGHT, 1)
-			State.SetState(MOVING)
-		} else if rl.IsKeyPressed(int32(Get_key(LEFT))) {
-			// leftAvail = true
-			State.SetData(LEFT, 1)
-			State.SetState(MOVING)
-		} else if rl.IsKeyPressed(int32(Get_key(UP))) {
-			// upAvail = true
-			State.SetData(UP, 1)
-			State.SetState(MOVING)
-		} else if rl.IsKeyPressed(int32(Get_key(BOTTOM))) {
-			// bottomAvail = true
-			State.SetData(BOTTOM, 1)
-			State.SetState(MOVING)
-		}
-
-		if rl.IsKeyPressed(rl.KeyB) {
-			add_item()
-		}
-
 		// if item_length() < 4 {
 		// 	add_item()
 		// }
 
-		moveItems()
+		// moveItems()
 
 		rl.EndDrawing()
 	}
