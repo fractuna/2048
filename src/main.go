@@ -6,7 +6,6 @@ import (
 	// "log/slog"
 )
 
-var debug bool = true
 var score int = 0
 
 const MAX_X = 4
@@ -36,9 +35,9 @@ const (
 
 var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
 	{0, 0, 0, 0},
-	{0, 0, 0, 1},
-	{0, 0, 0, 1},
-	{1, 1, 1, 1},
+	{0, 0, 0, 0},
+	{2, 0, 0, 0},
+	{0, 2, 0, 0},
 }
 
 func createMap() {
@@ -61,23 +60,21 @@ func drawMap() {
 	}
 }
 
-// func moveItems() {
-// 	var all_clean bool = true
-// 	for k, v := range State.GetDataFrame() {
-// 		if v == 1 {
-// 			move(k)
-// 			all_clean = false
-// 		}
-// 	}
-//
-// 	// State.SetState(IDLE)
-// }
+// The first screen before start playing the game
+// TODO: It needs some work
+func start_screen_info() {
+	rl.DrawText("press PLAY to start the game...", 15, 15, 30, rl.Black)
+}
 
 func process_state() int {
 
 	switch State.GetState() {
 	// case START:
-	// case IDLE:
+	case START:
+		start_screen_info()
+		if rl.IsKeyPressed(int32(Get_key(PLAY))) {
+			State.SetState(IDLE)
+		}
 	case MOVE_RIGHT:
 		// slog.Info("ASD")
 		Move_v(0, +1, MAX_X-1)
@@ -137,18 +134,15 @@ func process_state() int {
 		} else if rl.IsKeyPressed(rl.KeyEscape) {
 			return 2
 		}
-		// if rl.IsKeyPressed(rl.KeyB) {
-		// 	Add_item()
-		// }
 	}
-	// Do things based on the current State
 	return 0
 }
 
 func setupGame() {
 	// TODO: This will be a menu to start the game
 	// But for now we will start the game immediatelly
-	State.SetState(IDLE)
+
+	State.SetState(START)
 }
 
 func main() {

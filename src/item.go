@@ -1,38 +1,58 @@
 package main
 
 import (
+	"fmt"
 	"math/rand/v2"
 )
 
 // TODO: it needs more work
 func Add_item() {
-	// make a new item
-	// find a place for the item
-	// TODO: It's better to choose which column has chance
-	// To be picked rather than using randomize numbers
-	var random_horizantal = rand.IntN((MAX_Y-1)-0) + 0
-	// var random_horizantal = 1
-	// fmt.Println("That's the random colmn:", random_horizantal)
+	var candid_columns []Tuple
 
-	// First check if the colmn has empty rooms
-
-	// var dmp int = 0
-	for i := MAX_Y - 1; i >= 0; i-- {
-		item := tileMap[i][random_horizantal]
-		// fmt.Println(tileMap[i][random_horizantal])
-		if item == 0 {
-			// TODO: Add add_item logic here...
-			// backward until find an item
-			tileMap[i][random_horizantal] = 1
-			// tileMap[i+dmp][random_horizantal] = 1
+	// Get all the coulmns that has empty room inside it
+	var x, y = 0, 0
+	for {
+		if x == 3 {
 			break
 		}
-		// // maybe it doesn't have any item
-		// if i == 0 {
-		// 	tileMap[MAX_Y-1][random_horizantal] = 1
-		// 	break
-		// }
+
+		if y == 4 {
+			x++
+			y = 0
+		}
+
+		if tileMap[x][y] == 0 {
+			fmt.Printf("DEBUG: Found candidate for add_item x: %d, y: %d\n", x, y)
+			candid_columns = append(candid_columns, newTuple(x, y))
+		}
+		y++
 	}
+
+	// This means nohting is there for adding a new item
+	if len(candid_columns) == 0 {
+		return
+	}
+
+	fmt.Printf("DEBUG: The length of the candidate_items array is: %d\n", len(candid_columns))
+	var random_horizantal = candid_columns[(rand.IntN((len(candid_columns)))+1)-1]
+	fmt.Printf("DEBUG: choosed the %d from candidates column\n", random_horizantal)
+
+	tileMap[random_horizantal.getFirst()][random_horizantal.getSecond()] = 1
+
+	// var encounter int = 0
+	// for y1 := MAX_Y - 1; y1 >= 0; y1-- {
+	// 	if tileMap[y1][random_horizantal] == 0 {
+	// 		encounter += 1
+	// 	} else if tileMap[y1][random_horizantal] != 0 {
+	// 		fmt.Println(encounter + 1)
+	// 		tileMap[y1+(encounter-1)][random_horizantal] = 1
+	// 		encounter = 0
+	// 		break
+	// 	}
+	// }
+	// if encounter != 0 {
+	// 	tileMap[(encounter - 1)][random_horizantal] = 1
+	// }
 }
 
 /* This function works by shifting items to fill the zero values*/

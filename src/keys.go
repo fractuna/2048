@@ -12,6 +12,7 @@ const (
 	LEFT
 	UP
 	BOTTOM
+	PLAY
 )
 
 // Default key bindings
@@ -20,6 +21,7 @@ var keys map[int]int = map[int]int{
 	LEFT:   rl.KeyLeft,
 	UP:     rl.KeyDown,
 	BOTTOM: rl.KeyUp,
+	PLAY:   rl.KeySpace,
 }
 
 func Get_key(key int) int {
