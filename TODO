@@ -1,6 +1,5 @@
-The add_item is not fully implemented
 Make setting UI
 make settings for default key bindings
-Better item content render
 add score system
-Implementations of player lose
+Implement multiple bindings keys
+Set item colors better based on the value of it

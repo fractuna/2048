@@ -10,7 +10,7 @@ func Add_item() {
 	var candid_columns []Tuple
 
 	// Get all the coulmns that has empty room inside it
-	var x, y = 0, 0
+	x, y := 0, 0
 	for {
 		if x == 3 {
 			break
@@ -34,11 +34,12 @@ func Add_item() {
 	}
 
 	fmt.Printf("DEBUG: The length of the candidate_items array is: %d\n", len(candid_columns))
-	var random_horizantal = candid_columns[(rand.IntN((len(candid_columns)))+1)-1]
+	random_horizantal := candid_columns[(rand.IntN((len(candid_columns)))+1)-1]
 	fmt.Printf("DEBUG: choosed the %d from candidates column\n", random_horizantal)
 
 	tileMap[random_horizantal.getFirst()][random_horizantal.getSecond()] = 1
-
+	l_item += 1
+	fmt.Println("I added a new item")
 	// var encounter int = 0
 	// for y1 := MAX_Y - 1; y1 >= 0; y1-- {
 	// 	if tileMap[y1][random_horizantal] == 0 {
@@ -55,10 +56,27 @@ func Add_item() {
 	// }
 }
 
+func possible_move() bool {
+	// var isClean bool = true
+
+	move_right := Move_v(0, +1, MAX_X-1)
+
+	move_left := Move_v(3, -1, 0)
+	move_douw := Move_h(0, +1, MAX_Y-1)
+
+	move_up := Move_h(3, -1, 0)
+
+	return (move_right && move_left && move_douw && move_up)
+	//
+	// fmt.Println("I ran the possible moves code, result:", isClean)
+	//
+	// return isClean
+}
+
 /* This function works by shifting items to fill the zero values*/
 func Move_zero_v(default_x int, dmp int, max_x int) bool {
-	var x = default_x
-	var y = 0
+	x := default_x
+	y := 0
 	zeroClean := true
 	for {
 		if y == 4 {
@@ -85,8 +103,8 @@ func Move_zero_v(default_x int, dmp int, max_x int) bool {
 
 /* This function works by shifting items to fill the zero values*/
 func Move_zero_h(default_y int, dmp int, max_y int) bool {
-	var x = 0
-	var y = default_y
+	x := 0
+	y := default_y
 	zeroClean := true
 	for {
 		if x == 4 {
@@ -113,8 +131,8 @@ func Move_zero_h(default_y int, dmp int, max_y int) bool {
 
 // Original move right function
 func Move_v(default_x int, dmp int, max_x int) bool {
-	var x = 0
-	var y = 0
+	x := 0
+	y := 0
 	var isClean bool = true
 	for {
 		if y == 4 {
@@ -132,10 +150,18 @@ func Move_v(default_x int, dmp int, max_x int) bool {
 				break
 			}
 			if (tileMap[y][x] == tileMap[y][x+dmp]) && (tileMap[y][x] != 0) {
+
+				// INFO: Just for specefic state
+				if State.GetState() == CEHCK_ITEMS {
+					return false // == (isClean = false)
+				}
+
 				// if tileMap[y][x+1] == 0 && tileMap[y][x] != 0 {
 				tileMap[y][x+dmp] = tileMap[y][x] * 2
 				tileMap[y][x] = 0
+				l_item -= 1
 				// x = 0
+				isClean = false
 				// fmt.Println(tileMap[y])
 				y += 1
 				break
@@ -155,8 +181,8 @@ func Move_v(default_x int, dmp int, max_x int) bool {
 }
 
 func Move_h(default_y int, dmp int, max_y int) bool {
-	var x = 0
-	var y = 0
+	x := 0
+	y := 0
 	var isClean bool = true
 	for {
 		if x == 4 {
@@ -174,11 +200,18 @@ func Move_h(default_y int, dmp int, max_y int) bool {
 				break
 			}
 			if (tileMap[y][x] == tileMap[y+dmp][x]) && (tileMap[y][x] != 0) {
+
+				// INFO: Just for specefic state
+				if State.GetState() == CEHCK_ITEMS {
+					return false
+				}
 				// if tileMap[y][x+1] == 0 && tileMap[y][x] != 0 {
 				tileMap[y+dmp][x] = tileMap[y][x] * 2
 				tileMap[y][x] = 0
+				l_item -= 1
 				// x = 0
 				// fmt.Println(tileMap[y])
+				isClean = false
 				x += 1
 				break
 			}

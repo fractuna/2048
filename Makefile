@@ -1,7 +1,7 @@
 all: run
 
 BIN=2048
-MAIN=src/main.go src/state.go src/utils.go src/keys.go src/item.go
+MAIN=src/main.go src/state.go src/utils.go src/keys.go src/item.go src/config.go
 
 run:
 	go run ${MAIN}
