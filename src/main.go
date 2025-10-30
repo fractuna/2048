@@ -9,7 +9,7 @@ import (
 
 var (
 	score         int  = 0
-	l_item        int  = 16 // based on the default game's map
+	l_item        int  = 2 // based on the default game's map
 	items_checked bool = false
 	font_family   rl.Font
 )
@@ -37,10 +37,10 @@ const (
 )
 
 var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
-	{2, 1, 2, 1},
-	{1, 2, 1, 2},
-	{2, 1, 2, 1},
-	{1, 4, 2, 1},
+	{0, 0, 0, 0},
+	{0, 0, 0, 0},
+	{0, 2, 0, 0},
+	{2, 0, 0, 0},
 }
 
 func add_score(isClean bool) {
