@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	// "log/slog"
@@ -181,14 +182,23 @@ func process_state() int {
 	return 0
 }
 
-func setupGame() {
+func setupGame() bool {
 	// TODO: This will be a menu to start the game
 	// But for now we will start the game immediatelly
 
 	// Load the default font
-	font_family = rl.LoadFont(fmt.Sprintf("resources/%s", FONT_FAMILY))
+	// font_family = rl.LoadFont(fmt.Sprintf("resources/%s", FONT_FAMILY))
+
+	font_asset, err := Asset(fmt.Sprintf("resources/%s", FONT_FAMILY))
+	if err != nil {
+		fmt.Println("ERROR: Can't load the font, maybe rollback to default font")
+		return false
+	}
+
+	font_family = rl.LoadFontFromMemory(".ttf", font_asset, 256, []rune("abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTYVWXYZz0123456789.!: "))
 
 	State.SetState(START)
+	return true
 }
 
 // A simple function to restart the game
@@ -202,7 +212,9 @@ func main() {
 
 	rl.SetTargetFPS(60)
 
-	setupGame()
+	if !setupGame() {
+		os.Exit(1)
+	}
 
 	for !rl.WindowShouldClose() {
 
@@ -224,4 +236,6 @@ func main() {
 
 		rl.EndDrawing()
 	}
+
+	rl.UnloadFont(font_family)
 }
