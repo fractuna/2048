@@ -13,6 +13,7 @@ var (
 	l_item        int  = 2 // based on the default game's map
 	items_checked bool = false
 	font_family   rl.Font
+	isClean       bool = false
 )
 
 // === States ===
@@ -40,7 +41,7 @@ const (
 var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
 	{0, 0, 0, 0},
 	{0, 0, 0, 0},
-	{0, 2, 0, 0},
+	{0, 1, 0, 0},
 	{2, 0, 0, 0},
 }
 
@@ -92,7 +93,6 @@ func game_over() {
 }
 
 func process_state() int {
-	var isClean bool = false
 	switch State.GetState() {
 	case START:
 		start_screen_info()
@@ -118,33 +118,42 @@ func process_state() int {
 		// move_zero_v(0, +1, MAX_X-1)
 
 	case MOVE_ZERO_RIGHT:
-		isClean := Move_zero_v(0, +1, MAX_X-1)
-		if isClean {
+		isCleanZero := Move_zero_v(0, +1, MAX_X-1)
+		if isCleanZero && isClean {
 			State.SetState(JUST_FINISH)
+		} else {
+			State.PrevState()
 		}
 
 	case MOVE_ZERO_LEFT:
-		isClean := Move_zero_v(3, -1, 0)
-		if isClean {
+		isCleanZero := Move_zero_v(3, -1, 0)
+		fmt.Println(isClean, isCleanZero)
+		if isCleanZero && isClean {
 			State.SetState(JUST_FINISH)
+		} else {
+			State.PrevState()
 		}
 
 	case MOVE_ZERO_DOWN:
-		isClean := Move_zero_h(3, -1, 0)
-		if isClean {
+		isCleanZero := Move_zero_h(3, -1, 0)
+		// isCleanZero := Move_zero_v(0, +1, MAX_X-1)
+		if isCleanZero && isClean {
 			State.SetState(JUST_FINISH)
+		} else {
+			State.PrevState()
 		}
 
 	case MOVE_ZERO_UP:
-		isClean := Move_zero_h(0, +1, MAX_Y-1)
-		if isClean {
+		isCleanZero := Move_zero_h(0, +1, MAX_Y-1)
+		if isCleanZero && isClean {
 			State.SetState(JUST_FINISH)
+		} else {
+			State.PrevState()
 		}
 
 	case JUST_FINISH:
-		if !isClean {
-			Add_item()
-		}
+		// TODO: Don't add new item when there is 2 in a row clean movement
+		Add_item()
 		State.SetState(IDLE)
 	case LOSE:
 		game_over()

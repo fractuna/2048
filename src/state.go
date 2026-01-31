@@ -7,6 +7,7 @@ import (
 // Simple state machine to make life more easier
 type state struct {
 	current_state int
+	prev_state    int
 	state_data    map[int]int // TODO: This can be generic for better code's structure
 }
 
@@ -18,11 +19,21 @@ func Init(_current_state int) state {
 }
 
 func (p *state) SetState(_State int) {
+	p.prev_state = p.current_state
 	p.current_state = _State
+}
+
+func (p *state) PrevState() {
+	p.current_state = p.prev_state
+	p.prev_state = p.current_state
 }
 
 func (p *state) GetState() int {
 	return p.current_state
+}
+
+func (p *state) GetPrevState() int {
+	return p.prev_state
 }
 
 func (p *state) SetDataFrame(_data_frame map[int]int) {
