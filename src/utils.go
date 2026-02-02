@@ -59,5 +59,4 @@ func _LoggerProcess() {
 	if !DEBUG {
 		return
 	}
-	// fmt.Println(l_item)
 }

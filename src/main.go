@@ -5,12 +5,11 @@ import (
 	"os"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
-	// "log/slog"
 )
 
 var (
 	score         int  = 0
-	l_item        int  = 2 // based on the default game's map
+	l_item        int  = 8 // based on the default game's map
 	items_checked bool = false
 	font_family   rl.Font
 	isClean       bool = false
@@ -38,11 +37,18 @@ const (
 	LOSE
 )
 
+// var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
+// 	{2, 4, 2, 4},
+// 	{4, 2, 4, 2},
+// 	{2, 4, 2, 4},
+// 	{4, 2, 4, 2},
+// }
+
 var tileMap [MAX_X][MAX_Y]int = [MAX_X][MAX_Y]int{
-	{0, 0, 0, 0},
-	{0, 0, 0, 0},
-	{0, 1, 0, 0},
-	{2, 0, 0, 0},
+	{2, 0, 4, 4},
+	{0, 8, 0, 4},
+	{4, 2, 0, 8},
+	{0, 0, 16, 16},
 }
 
 func add_score(isClean bool) {
@@ -87,6 +93,7 @@ func start_screen_info() {
 }
 
 func game_over() {
+	fmt.Println("GAME OVER!")
 	x, y := calc_text_center(GAME_OVER_TEXT, rl.GetScreenWidth(), rl.GetScreenHeight(), H1)
 	rl.DrawTextEx(font_family, GAME_OVER_TEXT, rl.NewVector2(float32(x), float32(y)), H1, 4, rl.Black)
 	// rl.DrawText(GAME_OVER_TEXT, (int32(rl.GetScreenWidth()/2))-(rl.MeasureText(GAME_OVER_TEXT, DEFAULT_FONT_SIZE)), 510/2, DEFAULT_FONT_SIZE, rl.Black)
@@ -104,7 +111,9 @@ func process_state() int {
 		add_score(isClean)
 		State.SetState(MOVE_ZERO_RIGHT)
 	case MOVE_LEFT:
+		fmt.Println("MOVE LEFT")
 		isClean = Move_v(3, -1, 0)
+		fmt.Println(isClean)
 		add_score(isClean)
 		State.SetState(MOVE_ZERO_LEFT)
 	case MOVE_UP:
@@ -150,28 +159,46 @@ func process_state() int {
 		} else {
 			State.PrevState()
 		}
-
 	case JUST_FINISH:
-		// TODO: Don't add new item when there is 2 in a row clean movement
-		Add_item()
-		State.SetState(IDLE)
-	case LOSE:
-		game_over()
-		// return 2
-	case IDLE:
-
 		if l_item >= L_MAX {
 			if items_checked == false {
 				// Check if the player can't do any movement
 				State.SetState(CEHCK_ITEMS)
-				if possible_move() {
+				if possible_move() == false {
+					fmt.Println("Player can't move anymore")
 					State.SetState(LOSE)
+					// drawLosePopup()
 				} else {
+					fmt.Println("Player can still move")
 					State.SetState(IDLE)
 				}
 				items_checked = true
 			}
+		} else {
+			// TODO: Don't add new item when there is 2 in a row clean movement
+			Add_item()
+			State.SetState(IDLE)
 		}
+	case LOSE:
+		fmt.Println("LOSE STATE")
+		game_over()
+		// return 2
+	case IDLE:
+
+		isClean = false
+		// if l_item >= L_MAX {
+		// 	if items_checked == false {
+		// 		// Check if the player can't do any movement
+		// 		State.SetState(CEHCK_ITEMS)
+		// 		if possible_move() {
+		// 			State.SetState(LOSE)
+		// 			// drawLosePopup()
+		// 		} else {
+		// 			State.SetState(IDLE)
+		// 		}
+		// 		items_checked = true
+		// 	}
+		// }
 
 		if rl.IsKeyPressed(int32(Get_key(RIGHT))) {
 			State.SetState(MOVE_RIGHT)
@@ -189,6 +216,31 @@ func process_state() int {
 		}
 	}
 	return 0
+}
+
+func drawLosePopup() {
+	// Popup dimensions
+	popupWidth := int32(300)
+	popupHeight := int32(150)
+	screenWidth := rl.GetScreenWidth()
+	screenHeight := rl.GetScreenHeight()
+	x := (int32(screenWidth) - popupWidth) / 2
+	y := (int32(screenHeight) - popupHeight) / 2
+
+	// Draw semi-transparent background
+	rl.DrawRectangle(x, y, popupWidth, popupHeight, rl.Fade(rl.RayWhite, 0.95))
+
+	// Draw border
+	rl.DrawRectangleLines(x, y, popupWidth, popupHeight, rl.Black)
+
+	// Draw lose text (split into two lines for proper centering)
+	fontSize := int32(24)
+	loseText1 := "Game Over!"
+	loseText2 := "Press R to Restart"
+	textWidth1 := rl.MeasureText(loseText1, fontSize)
+	textWidth2 := rl.MeasureText(loseText2, fontSize)
+	rl.DrawText(loseText1, x+(popupWidth-textWidth1)/2, y+40, fontSize, rl.Red)
+	rl.DrawText(loseText2, x+(popupWidth-textWidth2)/2, y+80, fontSize, rl.Red)
 }
 
 func setupGame() bool {

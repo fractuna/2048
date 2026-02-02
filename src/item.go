@@ -45,13 +45,11 @@ func Add_item() {
 /* A simple function that checks if player can move an item or not */
 func possible_move() bool {
 	move_right := Move_v(0, +1, MAX_X-1)
-
 	move_left := Move_v(3, -1, 0)
-	move_douw := Move_h(0, +1, MAX_Y-1)
-
+	move_down := Move_h(0, +1, MAX_Y-1)
 	move_up := Move_h(3, -1, 0)
-
-	return (move_right && move_left && move_douw && move_up)
+	fmt.Println("DEBUG: possible_move results:", move_right, move_left, move_down, move_up)
+	return !(move_right && move_left && move_down && move_up)
 }
 
 /* This function works by shifting items to fill the zero values*/
