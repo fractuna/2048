@@ -7,6 +7,7 @@ FLATPAK_MANIFEST="org.flatpak.2048.yml"
 BUILD_MODE=x11
 
 run:
+	tools/go-bindata -o src/data.go resources/ # DEBUG
 	go run -tags ${BUILD_MODE} ${MAIN}
 
 build:
