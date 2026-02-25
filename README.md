@@ -17,7 +17,7 @@ make build
 Because it's fun. That's the main point of recreational programming.
 
 # Wayland
-You can easly compile the project using for wayland using 'BUILD_MODE' VAR in 'Makefile'.
+You can easly compile the project for wayland using 'BUILD_MODE' VAR in 'Makefile'.
 But for some reason, Wayland support doesn't work properly in Hyprland, though it works in Sway.
 For fixing the problem in hypr, easly just build the project with BUILD_MODE=x11;
 
