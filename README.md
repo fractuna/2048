@@ -22,6 +22,6 @@ But for some reason, Wayland support doesn't work properly in Hyprland, though i
 For fixing the problem in hypr, easly just build the project with BUILD_MODE=x11;
 
 # More
-If you see any problem with the project, I would be happy to read your PL. This project is not my main focus then I will barely look check out the source code, your help can keep this game alive :3.
+If you see any problems with the project, I would be happy to read your PL. This project is not my main focus then I will barely look check out the source code, your help can keep this game alive :3.
 
 
